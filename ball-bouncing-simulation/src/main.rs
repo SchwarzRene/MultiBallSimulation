@@ -1,4 +1,5 @@
 use macroquad::prelude::*;
+use ndarray::Array1;
 
 enum RetschisColour{
     Red,
@@ -14,20 +15,20 @@ enum Size{
 
 
 struct Ball{
-    pos : Vec<f64>,
-    v : Vec<f64>,
-    a : Vec<f64>,
+    pos : ndarray::Array1<f64>,
+    v : ndarray::Array1<f64>,
+    a : ndarray::Array1<f64>,
     color : RetschisColour,
     size : Size
 }
 
 #[macroquad::main("Ball Simulation")]
 async fn main() {
-    let position = vec![ 0., 0. ];
-    let velocity = vec![ 0., 0. ];
-    let acceleration = vec![ 0., 0. ];
+    let position: ndarray::ArrayBase<ndarray::OwnedRepr<f64>, ndarray::Dim<[usize; 1]>> = Array1::from( vec![ 0., 0. ] );
+    let velocity: ndarray::ArrayBase<ndarray::OwnedRepr<f64>, ndarray::Dim<[usize; 1]>> = Array1::from( vec![ 0., 0. ] );
+    let acceleration: ndarray::ArrayBase<ndarray::OwnedRepr<f64>, ndarray::Dim<[usize; 1]>> = Array1::from( vec![ 0., 9.8 ] );
 
-    let mut b = Ball{
+    let b = &mut Ball{
         pos : position,
         v : velocity,
         a : acceleration,
@@ -38,17 +39,17 @@ async fn main() {
     loop {
         clear_background( BLACK );
 
-        draw_circle( 0., 0., size_convertion( &b.size ), get_color( &b.color ) );
+        draw_circle( b.pos[0] as f32, b.pos[1] as f32, size_convertion( &b.size ), get_color( &b.color ) );
 
-        update_ball( b );
+        update_ball( b, 1. );
 
         next_frame().await;
     };
 }
 
 fn update_ball( b : &mut Ball, time_constant : f64 ){
-    b.pos = b.pos - b.v;
-    b.v = b.v + b.a;
+    b.pos = &b.pos - &b.v;
+    b.v = &b.v + &b.a;
 }
 
 fn size_convertion( size : &Size ) -> f32{
