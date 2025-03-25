@@ -41,15 +41,15 @@ async fn main() {
 
         draw_circle( b.pos[0] as f32, b.pos[1] as f32, size_convertion( &b.size ), get_color( &b.color ) );
 
-        update_ball( b, 1. );
+        update_ball( b, 0.1 );
 
         next_frame().await;
     };
 }
 
 fn update_ball( b : &mut Ball, time_constant : f64 ){
-    b.pos = &b.pos - &b.v;
-    b.v = &b.v + &b.a;
+    b.pos = &b.pos - &(&b.v*time_constant);
+    b.v = &b.v + &(&b.a*time_constant);
 }
 
 fn size_convertion( size : &Size ) -> f32{
