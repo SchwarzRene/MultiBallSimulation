@@ -39,7 +39,7 @@ async fn main() {
     loop {
         clear_background( BLACK );
 
-        draw_circle( b.pos[0] as f32, b.pos[1] as f32, size_convertion( &b.size ), get_color( &b.color ) );
+        draw_circle( b.pos[0] as f32, -b.pos[1] as f32, size_convertion( &b.size ), get_color( &b.color ) );
 
         update_ball( b, 0.1 );
 
@@ -48,7 +48,7 @@ async fn main() {
 }
 
 fn update_ball( b : &mut Ball, time_constant : f64 ){
-    b.pos = &b.pos - &(&b.v*time_constant);
+    b.pos = &b.pos - &(&b.v*time_constant/2.);
     b.v = &b.v + &(&b.a*time_constant);
 }
 
