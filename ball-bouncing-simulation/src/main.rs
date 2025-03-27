@@ -144,8 +144,11 @@ fn detect_ball_collision( balls : &mut Vec<Ball> ){
                         let v1 = balls[idx1].v.clone();
                         let v2 = balls[idx2].v.clone();
 
-                        balls[idx1].v = v2;
-                        balls[idx2].v = v1;
+                        let m1 = size_convertion( &balls[ idx1 ].size ) as f64;
+                        let m2 = size_convertion( &balls[ idx2 ].size ) as f64;
+
+                        balls[idx1].v = ( &v1 * m1 + m2 * ( &v2 * 2. - &v1 ) ) / ( m1 + m2 );
+                        balls[idx2].v = ( &v2 * m2 + m1 * ( &v1 * 2. - &v2 ) ) / ( m1 + m2 );
 
                         changed_balls.push( vec![ idx1, idx2 ] );
                     }
