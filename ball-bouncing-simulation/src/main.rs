@@ -77,7 +77,7 @@ async fn main() {
             detect_collision_with_walls( ball, width, height, 1. );
         }
 
-        detect_ball_collision( &balls );
+        detect_ball_collision( &mut balls );
         
         next_frame().await;
     };
@@ -116,20 +116,43 @@ fn detect_collision_with_walls( b : &mut Ball, width : f32, height : f32, dumpin
     }
 }
 
-fn detect_ball_collision( balls : &Vec<Ball> ){
-    let mut distance_array = vec![ vec![ 100000.; balls.len() ]; balls.len() ];
+fn detect_ball_collision( balls : &mut Vec<Ball> ){
+    let mut distance_array = vec![ vec![ 0.; balls.len() ]; balls.len() ];
 
     for ( idx1, b1 ) in balls.iter().enumerate(){
         for ( idx2, b2 ) in balls.iter().enumerate(){
-            if idx1 != idx2{
-                let distance = (&b1.pos - &b2.pos).iter().map(|x| x.powi(2)).sum::<f64>().sqrt();
-
-                distance_array[ idx1 ][ idx2 ] = distance;
-            }
+            let distance = (&b1.pos - &b2.pos).iter().map(|x| x.powi(2)).sum::<f64>().sqrt();
+            distance_array[ idx1 ][ idx2 ] = distance;
         }
     }
 
-    
+    let mut changed_balls = vec![ vec![ ] ];
+    for idx1 in 0..balls.len(){
+        for idx2 in 0..balls.len(){
+            if idx1 != idx2 {
+                let distance = distance_array[ idx1 ][ idx2 ] as f32;
+                if distance <= size_convertion( &balls[ idx1 ].size ) + size_convertion( &balls[ idx2 ].size ){
+                    
+                    let mut already_resolved = false;
+                    for idx_pair in changed_balls.iter(){
+                        if idx_pair == &vec![ idx1, idx2 ] || idx_pair == &vec![ idx2, idx1 ]{
+                            already_resolved = true;
+                        }
+                    }
+
+                    if !already_resolved{
+                        let v1 = balls[idx1].v.clone();
+                        let v2 = balls[idx2].v.clone();
+
+                        balls[idx1].v = v2;
+                        balls[idx2].v = v1;
+
+                        changed_balls.push( vec![ idx1, idx2 ] );
+                    }
+                }
+            }
+        }
+    }
 }
 
 fn size_convertion( size : &Size ) -> f32{
