@@ -33,7 +33,7 @@ async fn main() {
         if i % 1 == 0{ x_direction = -1.  }
 
         let x_vel = i as f64 * 5. * x_direction;
-        
+
         let position: ndarray::ArrayBase<ndarray::OwnedRepr<f64>, ndarray::Dim<[usize; 1]>> = Array1::from( vec![ x_pos, 400. ] );
         let velocity: ndarray::ArrayBase<ndarray::OwnedRepr<f64>, ndarray::Dim<[usize; 1]>> = Array1::from( vec![ x_vel, 0. ] );
         let acceleration: ndarray::ArrayBase<ndarray::OwnedRepr<f64>, ndarray::Dim<[usize; 1]>> = Array1::from( vec![ 0., 9.8 ] );
@@ -74,19 +74,23 @@ async fn main() {
             draw_circle( ball.pos[0] as f32, height - ball.pos[1] as f32, size_convertion( &ball.size ), get_color( &ball.color ) );
 
             update_ball( ball, 0.2 );
-            detect_collision( ball, width, height, 1. );
+            detect_collision_with_walls( ball, width, height, 1. );
         }
+
+        detect_ball_collision( &balls );
         
         next_frame().await;
     };
 }
+
+
 
 fn update_ball( b : &mut Ball, time_constant : f64 ){
     b.pos = &b.pos - &(&b.v*time_constant/2.);
     b.v = &b.v + &(&b.a*time_constant);
 }
 
-fn detect_collision( b : &mut Ball, width : f32, height : f32, dumping_factor : f64 ){
+fn detect_collision_with_walls( b : &mut Ball, width : f32, height : f32, dumping_factor : f64 ){
     let lower_edge = &b.pos[ 1 ] - size_convertion( &b.size ) as f64;
     if lower_edge <= 0.{
         b.v[ 1 ] = -&b.v[ 1 ] * dumping_factor;
@@ -110,10 +114,23 @@ fn detect_collision( b : &mut Ball, width : f32, height : f32, dumping_factor : 
         b.v[ 0 ] = -&b.v[ 0 ] * dumping_factor;
         b.pos[ 0 ] = (width - size_convertion( &b.size )) as f64;
     }
-
-
 }
 
+fn detect_ball_collision( balls : &Vec<Ball> ){
+    let mut distance_array = vec![ vec![ 100000.; balls.len() ]; balls.len() ];
+
+    for ( idx1, b1 ) in balls.iter().enumerate(){
+        for ( idx2, b2 ) in balls.iter().enumerate(){
+            if idx1 != idx2{
+                let distance = (&b1.pos - &b2.pos).iter().map(|x| x.powi(2)).sum::<f64>().sqrt();
+
+                distance_array[ idx1 ][ idx2 ] = distance;
+            }
+        }
+    }
+
+    
+}
 
 fn size_convertion( size : &Size ) -> f32{
     match size{
